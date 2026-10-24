@@ -1,338 +1,90 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f4f3ec">
-  <title>Pace | Demo task board</title>
-  <style>
-    :root {
-      color-scheme: light;
-      --ink: #183b37;
-      --muted: #71817b;
-      --paper: #f4f3ec;
-      --surface: #fffefa;
-      --line: #e5e7dc;
-      --green: #24685a;
-      --lime: #d8ee8b;
-      --coral: #e9785c;
-      font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      min-height: 100vh;
-      margin: 0;
-      color: var(--ink);
-      background-color: var(--paper);
-      background-image: radial-gradient(#d9ded0 0.7px, transparent 0.7px);
-      background-size: 18px 18px;
-    }
-
-    button, input { font: inherit; }
-
-    .page {
-      width: min(1040px, calc(100% - 40px));
-      margin: 0 auto;
-      padding: 34px 0 64px;
-    }
-
-    .topbar, .brand, .date-label, .board-heading, .task-row, .task-copy,
-    .board-footer, .filter-list, .progress-labels {
-      display: flex;
-      align-items: center;
-    }
-
-    .topbar, .board-heading, .board-footer, .progress-labels { justify-content: space-between; }
-
-    .brand { gap: 10px; font-weight: 750; letter-spacing: 0.02em; }
-
-    .brand-mark {
-      display: grid;
-      width: 30px;
-      aspect-ratio: 1;
-      place-items: center;
-      border-radius: 9px;
-      background: var(--green);
-      color: white;
-      font-size: 17px;
-    }
-
-    .date-label { gap: 8px; color: var(--muted); font-size: 13px; }
-
-    .date-dot { width: 7px; aspect-ratio: 1; border-radius: 50%; background: var(--coral); }
-
-    .intro { max-width: 600px; margin: 76px 0 38px; animation: arrive 500ms ease-out both; }
-
-    .eyebrow { margin: 0 0 12px; color: var(--green); font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; }
-
-    h1 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(38px, 6vw, 62px); font-weight: 500; letter-spacing: 0; line-height: 1.03; }
-
-    .intro p:last-child { max-width: 440px; margin: 17px 0 0; color: var(--muted); font-size: 15px; line-height: 1.6; }
-
-    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 275px; align-items: start; gap: 20px; }
-
-    .board, .side-panel { border: 1px solid var(--line); border-radius: 7px; background: var(--surface); box-shadow: 0 14px 40px #294b3510; }
-
-    .board { overflow: hidden; animation: arrive 600ms 80ms ease-out both; }
-
-    .board-heading { min-height: 76px; padding: 18px 22px; border-bottom: 1px solid var(--line); }
-
-    .board-heading h2 { margin: 0; font-size: 15px; font-weight: 750; }
-
-    .task-total { color: var(--muted); font-size: 12px; }
-
-    .add-form { display: flex; gap: 9px; padding: 18px 22px; border-bottom: 1px solid var(--line); }
-
-    .add-form input { min-width: 0; flex: 1; padding: 11px 12px; border: 1px solid var(--line); border-radius: 4px; outline: none; background: #fff; color: var(--ink); }
-
-    .add-form input:focus { border-color: var(--green); box-shadow: 0 0 0 3px #24685a1a; }
-
-    .add-form button { padding: 0 16px; border: 0; border-radius: 4px; background: var(--green); color: white; font-weight: 700; cursor: pointer; }
-
-    .filter-list { gap: 5px; padding: 13px 22px 9px; }
-
-    .filter-button { padding: 7px 10px; border: 0; border-radius: 4px; background: transparent; color: var(--muted); font-size: 12px; cursor: pointer; }
-
-    .filter-button[aria-pressed="true"] { background: #eaf0e7; color: var(--green); font-weight: 750; }
-
-    .tasks { min-height: 210px; padding: 0 22px; }
-
-    .task-row { min-height: 58px; gap: 12px; border-bottom: 1px solid #edf0e8; }
-
-    .task-check { width: 18px; height: 18px; flex: 0 0 18px; accent-color: var(--green); cursor: pointer; }
-
-    .task-copy { min-width: 0; flex: 1; justify-content: space-between; gap: 12px; }
-
-    .task-name { overflow-wrap: anywhere; font-size: 13px; }
-
-    .task-row.is-done .task-name { color: #9aa59c; text-decoration: line-through; }
-
-    .remove-button { padding: 6px 0 6px 8px; border: 0; background: transparent; color: #9aa59c; font-size: 11px; cursor: pointer; }
-
-    .remove-button:hover { color: #b54a37; }
-
-    .empty-state { padding: 54px 12px; color: var(--muted); font-size: 13px; text-align: center; }
-
-    .board-footer { min-height: 58px; padding: 12px 22px; color: var(--muted); font-size: 11px; }
-
-    .clear-button { padding: 5px 0; border: 0; background: none; color: var(--green); font-size: 11px; cursor: pointer; }
-
-    .side-panel { padding: 20px; animation: arrive 650ms 140ms ease-out both; }
-
-    .side-panel h2 { margin: 0 0 5px; font-size: 13px; }
-
-    .side-panel > p { margin: 0; color: var(--muted); font-size: 11px; }
-
-    .progress-ring {
-      display: grid;
-      width: 136px;
-      aspect-ratio: 1;
-      margin: 26px auto 20px;
-      place-items: center;
-      border-radius: 50%;
-      background: conic-gradient(var(--green) var(--progress, 0%), #e9ede4 0);
-      position: relative;
-    }
-
-    .progress-ring::before { position: absolute; inset: 9px; border-radius: 50%; background: var(--surface); content: ""; }
-
-    .progress-value { z-index: 1; text-align: center; }
-
-    .progress-value strong { display: block; font-family: Georgia, "Times New Roman", serif; font-size: 34px; font-weight: 500; }
-
-    .progress-value span { color: var(--muted); font-size: 10px; }
-
-    .progress-labels { padding: 12px 0; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
-
-    .progress-labels strong { color: var(--ink); font-size: 12px; }
-
-    .note { margin-top: 14px; padding: 13px; border-radius: 4px; background: #f2f5e7; color: var(--green); font-family: Georgia, "Times New Roman", serif; font-size: 13px; line-height: 1.45; }
-
-    @keyframes arrive { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-    @media (max-width: 720px) {
-      .page { width: min(100% - 28px, 520px); padding-top: 22px; }
-      .intro { margin: 56px 0 28px; }
-      .layout { grid-template-columns: 1fr; }
-      .side-panel { display: grid; grid-template-columns: 1fr auto; align-items: center; column-gap: 16px; }
-      .side-panel h2, .side-panel > p { grid-column: 1; }
-      .progress-ring { grid-column: 2; grid-row: 1 / span 3; width: 82px; margin: 0; }
-      .progress-ring::before { inset: 6px; }
-      .progress-value strong { font-size: 22px; }
-      .progress-value span { font-size: 9px; }
-      .progress-labels, .note { display: none; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
-    }
-  </style>
-</head>
-<body>
-  <main class="page">
-    <header class="topbar">
-      <div class="brand"><span class="brand-mark" aria-hidden="true">p</span><span>pace</span></div>
-      <div class="date-label"><span class="date-dot" aria-hidden="true"></span><span id="today-label"></span></div>
-    </header>
-
-    <section class="intro" aria-labelledby="page-title">
-      <p class="eyebrow">A little room to focus</p>
-      <h1 id="page-title">Make space<br>for the next thing.</h1>
-      <p>A calm place for your tasks today. Keep the list short, find your rhythm, and enjoy the momentum.</p>
-    </section>
-
-    <div class="layout">
-      <section class="board" aria-labelledby="list-title">
-        <header class="board-heading">
-          <h2 id="list-title">Today's list</h2>
-          <span class="task-total" id="task-total"></span>
-        </header>
-        <form class="add-form" id="add-form">
-          <input id="new-task" name="task" maxlength="120" placeholder="Add a task..." aria-label="New task" autocomplete="off" required>
-          <button type="submit">Add task</button>
-        </form>
-        <nav class="filter-list" aria-label="Filter tasks">
-          <button class="filter-button" type="button" data-filter="all" aria-pressed="true">All</button>
-          <button class="filter-button" type="button" data-filter="active" aria-pressed="false">In progress</button>
-          <button class="filter-button" type="button" data-filter="done" aria-pressed="false">Completed</button>
-        </nav>
-        <div class="tasks" id="tasks" aria-live="polite"></div>
-        <footer class="board-footer">
-          <span id="remaining-label"></span>
-          <button class="clear-button" id="clear-completed" type="button">Clear completed</button>
-        </footer>
-      </section>
-
-      <aside class="side-panel" aria-labelledby="progress-title">
-        <h2 id="progress-title">Today's pace</h2>
-        <p>A little progress adds up.</p>
-        <div class="progress-ring" id="progress-ring" role="img" aria-label="0 percent complete">
-          <div class="progress-value"><strong id="progress-number">0%</strong><span>complete</span></div>
-        </div>
-        <div class="progress-labels"><span>Tasks done</span><strong id="done-count">0</strong></div>
-        <div class="progress-labels"><span>Still to go</span><strong id="todo-count">0</strong></div>
-        <div class="note" id="daily-note">“Almost everything will work again if you unplug it for a few minutes, including you.”</div>
-      </aside>
-    </div>
-  </main>
-
-  <script>
-    const starterTasks = [
-      { id: 1, text: "Set one intention for the day", done: true },
-      { id: 2, text: "Take a proper stretch break", done: false },
-      { id: 3, text: "Make progress on the important thing", done: false },
-      { id: 4, text: "Clear a little space for tomorrow", done: false }
-    ];
-    const storageKey = "pace-demo-tasks";
-    let tasks;
-    try {
-      const savedTasks = JSON.parse(localStorage.getItem(storageKey));
-      tasks = Array.isArray(savedTasks) ? savedTasks : starterTasks;
-    } catch {
-      tasks = starterTasks;
-    }
-    let filter = "all";
-
-    const taskContainer = document.querySelector("#tasks");
-    const form = document.querySelector("#add-form");
-    const input = document.querySelector("#new-task");
-
-    document.querySelector("#today-label").textContent = new Intl.DateTimeFormat(undefined, {
-      weekday: "long", month: "long", day: "numeric"
-    }).format(new Date());
-
-    function saveTasks() {
-      try { localStorage.setItem(storageKey, JSON.stringify(tasks)); } catch { /* Storage may be unavailable in private browsing. */ }
-    }
-
-    function render() {
-      const done = tasks.filter((task) => task.done).length;
-      const remaining = tasks.length - done;
-      const percent = tasks.length ? Math.round((done / tasks.length) * 100) : 0;
-      const visibleTasks = tasks.filter((task) => filter === "all" || (filter === "done" ? task.done : !task.done));
-
-      taskContainer.replaceChildren();
-      if (visibleTasks.length === 0) {
-        const empty = document.createElement("p");
-        empty.className = "empty-state";
-        empty.textContent = tasks.length ? "Nothing to see in this view." : "Your list is clear. Add a task when you're ready.";
-        taskContainer.append(empty);
-      } else {
-        visibleTasks.forEach((task) => {
-          const row = document.createElement("div");
-          row.className = `task-row${task.done ? " is-done" : ""}`;
-
-          const checkbox = document.createElement("input");
-          checkbox.className = "task-check";
-          checkbox.type = "checkbox";
-          checkbox.checked = task.done;
-          checkbox.setAttribute("aria-label", `${task.done ? "Mark incomplete" : "Complete"}: ${task.text}`);
-          checkbox.addEventListener("change", () => {
-            task.done = checkbox.checked;
-            saveTasks();
-            render();
-          });
-
-          const copy = document.createElement("div");
-          copy.className = "task-copy";
-          const name = document.createElement("span");
-          name.className = "task-name";
-          name.textContent = task.text;
-          const remove = document.createElement("button");
-          remove.className = "remove-button";
-          remove.type = "button";
-          remove.textContent = "Remove";
-          remove.setAttribute("aria-label", `Remove ${task.text}`);
-          remove.addEventListener("click", () => {
-            tasks = tasks.filter((item) => item.id !== task.id);
-            saveTasks();
-            render();
-          });
-          copy.append(name, remove);
-          row.append(checkbox, copy);
-          taskContainer.append(row);
-        });
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f7f4ed">
+    <title>Hello, world! | Pace</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+        color: #20382f;
+        background: #f7f4ed;
       }
 
-      document.querySelector("#task-total").textContent = `${tasks.length} ${tasks.length === 1 ? "task" : "tasks"}`;
-      document.querySelector("#remaining-label").textContent = `${remaining} left to do`;
-      document.querySelector("#progress-number").textContent = `${percent}%`;
-      document.querySelector("#progress-ring").style.setProperty("--progress", `${percent}%`);
-      document.querySelector("#progress-ring").setAttribute("aria-label", `${percent}% complete`);
-      document.querySelector("#done-count").textContent = done;
-      document.querySelector("#todo-count").textContent = remaining;
-    }
+      * {
+        box-sizing: border-box;
+      }
 
-    form.addEventListener("submit", (event) => {
-      event.preventDefault();
-      const text = input.value.trim();
-      if (!text) return;
-      tasks.push({ id: Date.now(), text, done: false });
-      input.value = "";
-      saveTasks();
-      render();
-      input.focus();
-    });
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background-image: radial-gradient(#d9ded0 0.7px, transparent 0.7px);
+        background-size: 18px 18px;
+      }
 
-    document.querySelectorAll(".filter-button").forEach((button) => {
-      button.addEventListener("click", () => {
-        filter = button.dataset.filter;
-        document.querySelectorAll(".filter-button").forEach((item) => {
-          item.setAttribute("aria-pressed", String(item === button));
-        });
-        render();
-      });
-    });
+      main {
+        width: min(100%, 620px);
+        padding: clamp(32px, 8vw, 72px);
+        border: 1px solid #e5e3d9;
+        border-radius: 12px;
+        background: #fffefa;
+        box-shadow: 0 20px 60px #294b3512;
+        text-align: center;
+      }
 
-    document.querySelector("#clear-completed").addEventListener("click", () => {
-      tasks = tasks.filter((task) => !task.done);
-      saveTasks();
-      render();
-    });
+      .mark {
+        display: grid;
+        width: 44px;
+        aspect-ratio: 1;
+        margin: 0 auto 32px;
+        place-items: center;
+        border-radius: 14px;
+        background: #286451;
+        color: white;
+        font-size: 24px;
+        font-weight: 700;
+      }
 
-    render();
-  </script>
-</body>
+      p {
+        margin: 0;
+        color: #68776e;
+        font-size: 14px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 12px 0;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(48px, 10vw, 76px);
+        font-weight: 500;
+        letter-spacing: -0.05em;
+        line-height: 1;
+      }
+
+      .message {
+        max-width: 360px;
+        margin: 20px auto 0;
+        color: #68776e;
+        font-size: 16px;
+        letter-spacing: normal;
+        line-height: 1.6;
+        text-transform: none;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="mark" aria-hidden="true">p</div>
+      <p>A little demo from Pace</p>
+      <h1>Hello, world!</h1>
+      <p class="message">A simple place to start. Make a change, commit it, and see it come to life.</p>
+    </main>
+  </body>
 </html>
