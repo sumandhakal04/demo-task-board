@@ -17,4 +17,11 @@ To enable publishing, create a Docker Hub repository named `demo-task-board` and
 - `DOCKERHUB_USERNAME`: your Docker Hub username
 - `DOCKERHUB_TOKEN`: a Docker Hub access token with read/write permissions
 
-You can still build and run the app locally with Docker Compose using `docker compose up --build`.
+To pull and run the published image, set your Docker Hub username and start Compose:
+
+```sh
+export DOCKERHUB_USERNAME=your-dockerhub-username
+docker compose up
+```
+
+Compose pulls the `latest` image; it does not build locally. To build from source instead, use `docker compose build` first.
